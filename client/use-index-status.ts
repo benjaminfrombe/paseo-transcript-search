@@ -1,14 +1,16 @@
+import { useAppVisible } from "./use-app-visible";
 import { useQueries } from "@tanstack/react-query";
 import { indexStatus } from "../shared/contracts";
 import { rpcForHost, type SearchHost } from "./federation";
 
 export function useIndexStatus(hosts: readonly SearchHost[], enabled: boolean) {
+  const visible = useAppVisible();
   const queries = useQueries({ queries: hosts.map(host => ({
     queryKey: ["agents-history", "index-status", host.serverId, host.generation] as const,
     queryFn: () => rpcForHost(host.serverId)(indexStatus, {}),
-    enabled,
+    enabled: enabled && visible,
     retry: 1,
-    refetchInterval: 5_000,
+    refetchInterval: enabled && visible ? 5_000 : false,
   })) });
   if (!enabled) return null;
   return queries.flatMap((query, index) => {

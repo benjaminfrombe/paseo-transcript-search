@@ -21,12 +21,22 @@ export default function contribute(server: PluginServerContext) {
     return { agentId };
   });
   server.handle(listHistory, async () => {
+    console.log(`[agents-history] DEBUG listHistory called`);
     const census = await buildCensus();
     // Literal search needs no index. Ranked search requests its own sync on demand.
     return census;
   });
-  server.handle(searchHistory, (input) => runSearch(input));
-  server.handle(indexStatus, () => getIndexStatus());
+  server.handle(searchHistory, (input) => {
+    console.log(`[agents-history] DEBUG search q=${JSON.stringify(input.query)} mode=${input.mode} agents=${input.agentIds?.length}`);
+    return runSearch(input).then((out) => {
+      console.log(`[agents-history] DEBUG search done mode=${out.mode} fallback=${out.fallback ?? "-"} matches=${out.matches.length} searched=${out.searchedAgents} unsearchable=${out.unsearchableAgents.length} err=${out.error ? out.error.code : "-"}`);
+      return out;
+    });
+  });
+  server.handle(indexStatus, () => {
+    console.log(`[agents-history] DEBUG indexStatus ${JSON.stringify(getIndexStatus())}`);
+    return getIndexStatus();
+  });
   server.handle(readExcerpt, ({ agentId, fileName, ...options }) => excerptForAgent(agentId, fileName, options));
   server.handle(attachSearch, ({ query }) => searchAttachments(query));
   server.handle(attachItem, (input) => attachItemFor(input));

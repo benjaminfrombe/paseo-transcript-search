@@ -1,3 +1,4 @@
+import { appVisible, onVisibility } from "./visibility";
 import type { PluginClientContext, PluginHostSummary } from "@getpaseo/plugin/client";
 import { hostIdentity } from "../shared/contracts";
 
@@ -39,7 +40,7 @@ export function registerHost(client: Pick<PluginClientContext, "rpc">) {
   let disposed = false, pending = false;
   let unregister: (() => void) | undefined;
   const identify = async () => {
-    if (disposed || pending || unregister) return;
+    if (disposed || pending || unregister || !appVisible()) return;
     pending = true;
     try {
       const identity = await client.rpc(hostIdentity, {});
@@ -47,9 +48,10 @@ export function registerHost(client: Pick<PluginClientContext, "rpc">) {
     } catch { /* Reconnect/catalog loading can precede server readiness. Retry while alive. */ }
     finally { pending = false; }
   };
+  const offVisibility = onVisibility(() => { if (appVisible()) void identify(); });
   void identify();
   const timer = setInterval(() => { void identify(); }, 5_000);
-  return () => { disposed = true; clearInterval(timer); unregister?.(); };
+  return () => { disposed = true; clearInterval(timer); offVisibility(); unregister?.(); };
 }
 
 export function hostAvailability(hosts: readonly PluginHostSummary[]) {

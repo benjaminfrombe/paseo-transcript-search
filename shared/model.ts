@@ -90,9 +90,9 @@ export const EMPTY_FILTERS: HistoryFilters = {
   caseSensitive: false,
 };
 
-/** Regex always greps; ranked mode needs the toggle on. */
+/** Regex always greps; every literal query matches through the index, the sort only orders. */
 export function searchMode(filters: HistoryFilters): SearchMode {
-  return filters.regex || !filters.ranked ? "regex" : "ranked";
+  return filters.regex ? "regex" : "ranked";
 }
 
 export const METADATA_FIELD_LABELS: Record<string, string> = {

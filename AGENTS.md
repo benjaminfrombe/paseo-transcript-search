@@ -72,3 +72,5 @@ This repository is public, and so is everything built from it: npm packages, rel
 - **Found one already in the repo?** Fix it in a commit whose message doesn't quote the value (for example "replace a real name with a fictional one"), and tell the developer so they can decide whether history and npm need cleaning too.
 
 - Index-status queries and host-identity retries pause while the app is hidden. Web document visibility lives in `client/web.ts`; `client/use-app-visible.ts` handles native AppState and releases listeners when a screen or installation unmounts.
+
+- Display settings use the kit subscription feed, with a one-minute read only while unavailable. Release the feed on unload. Vendored settings-feed modules must match the pinned kit; edit the kit first.

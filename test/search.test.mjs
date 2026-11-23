@@ -23,6 +23,7 @@ test("literal and regex searches find active, archived, Codex, and Claude subage
   const json = async (file, value) => { await mkdir(join(file, ".."), { recursive: true }); await writeFile(file, JSON.stringify(value)); };
   const line = async (file, value) => { await mkdir(join(file, ".."), { recursive: true }); await writeFile(file, JSON.stringify(value) + "\n"); };
   let cleanup;
+  const settingsListeners = new Set();
   try {
     const ids = ["active", "archived", "codex", "missing"];
     for (const id of ids) await json(join(process.env.PASEO_HOME, "agents", "bucket", `${id}.json`), {
@@ -42,7 +43,11 @@ test("literal and regex searches find active, archived, Codex, and Claude subage
 
     const handlers = new Map();
     const server = await load("index.server.ts");
-    cleanup = server.default({ before() { return () => {}; }, registerSettings() {}, handle(contract, callback) { handlers.set(contract.name, { contract, callback }); } });
+    cleanup = server.default({ before() { return () => {}; }, registerSettings() { return {
+      read: async () => ({ status: "ready", revision: "fixture", values: { showSidebar: true } }),
+      subscribe(listener) { settingsListeners.add(listener); return () => settingsListeners.delete(listener); },
+    }; }, handle(contract, callback) { handlers.set(contract.name, { contract, callback }); } });
+    assert.equal(settingsListeners.size, 1, "the settings feed owns one host listener");
     const invoke = async (name, input) => {
       const { contract, callback } = handlers.get(name);
       return contract.output.parse(await callback(contract.input.parse(input), {}));
@@ -70,6 +75,7 @@ test("literal and regex searches find active, archived, Codex, and Claude subage
     assert.equal(invalid.error.code, "invalid-regex");
   } finally {
     await cleanup?.();
+    assert.equal(settingsListeners.size, 0, "unload releases the settings listener");
     for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
     await rm(root, { recursive: true, force: true });
   }

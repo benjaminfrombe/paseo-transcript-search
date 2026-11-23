@@ -4,7 +4,7 @@
   "description": "Search text across active and archived Paseo session transcripts.",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && node --test test/*.test.mjs && node --test --experimental-strip-types agent-tools.test.mjs && node --test native-tools.test.mjs && node --test scripts/release-notes.test.mjs"
+    "verify": "npm run typecheck && node --test test/*.test.mjs && node --test --experimental-strip-types agent-tools.test.mjs && node --test native-tools.test.mjs && node --test scripts/release-notes.test.mjs && node --test display-feed.test.mjs && paseo-kit vendor --check settings-feed-client client/settings-feed && paseo-kit vendor --check settings-feed-server server/settings-feed"
   },
   "devDependencies": {
     "@getpaseo/client": "0.14.0",
@@ -14,6 +14,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "~19.2.0",
     "esbuild": "^0.28.2",
+    "paseo-plugin-kit": "github:tomgrin10/paseo-plugin-kit#v0.4.0-beta.0",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "typescript": "^5.9.3",

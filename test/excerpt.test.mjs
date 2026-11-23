@@ -57,7 +57,10 @@ async function fixture() {
   ]);
   const handlers = new Map();
   const server = await load("index.server.ts");
-  const cleanup = server.default({ before() { return () => {}; }, registerSettings() {}, handle(contract, callback) { handlers.set(contract.name, { contract, callback }); } });
+  const cleanup = server.default({ before() { return () => {}; }, registerSettings() { return {
+    read: async () => ({ status: "ready", revision: "fixture", values: { showSidebar: true } }),
+    subscribe() { return () => {}; },
+  }; }, handle(contract, callback) { handlers.set(contract.name, { contract, callback }); } });
   const invoke = async (name, input) => { const { contract, callback } = handlers.get(name); return contract.output.parse(await callback(contract.input.parse(input), {})); };
   return {
     invoke,

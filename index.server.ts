@@ -1,5 +1,6 @@
+import { registerSettingsFeed } from "./server/settings-feed/index";
 import { contributeAgentTools } from "./server/native-tools";
-import { displayPreferences } from "./shared/display";
+import { displayFeed, displayPreferences } from "./shared/display";
 import type { PluginServerContext } from "@getpaseo/plugin/server";
 import { buildCensus, clearCensusCaches } from "./server/census";
 import { getIndexStatus, stopIndexer } from "./server/indexer";
@@ -13,7 +14,7 @@ import { restoreArchivedAgent } from "./server/restore-agent";
 
 export default function contribute(server: PluginServerContext) {
   const removeTools = contributeAgentTools(server);
-  server.registerSettings(displayPreferences);
+  const stopDisplayFeed = registerSettingsFeed(server, displayFeed, server.registerSettings(displayPreferences));
   server.handle(hostIdentity, async () => ({ serverId: await serverId(), protocol: 1 as const }));
   server.handle(restoreAgent, async ({ agentId }, { paseo }) => {
     await restoreArchivedAgent(agentId, paseo);
@@ -30,6 +31,7 @@ export default function contribute(server: PluginServerContext) {
   server.handle(attachSearch, ({ query }) => searchAttachments(query));
   server.handle(attachItem, (input) => attachItemFor(input));
   return async () => {
+    stopDisplayFeed();
     removeTools();
     abortAllSearches();
     await stopIndexer();

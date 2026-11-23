@@ -85,7 +85,7 @@ export const EMPTY_FILTERS: HistoryFilters = {
   projectIds: new Set(),
   labels: new Set(),
   period: "all",
-  ranked: false,
+  ranked: true,
   regex: false,
   caseSensitive: false,
 };
